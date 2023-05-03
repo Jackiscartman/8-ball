@@ -6,9 +6,7 @@ import java.awt.event.*;
 import javax.sound.sampled.*;
 import java.io.*;
 
-public class Game  extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener{
-
-	
+public class Game  extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 	private BufferedImage back; 
 	private int key; 
 	private ImageIcon background;	
@@ -29,8 +27,7 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		gameBalls = setGameBalls();
 	}
 
-	private ArrayList<Ball> setGameBalls()
-	{
+	private ArrayList<Ball> setGameBalls() {
 		ArrayList <Ball> temp = new ArrayList();
 		int size = 40, cols = 5, k = 0;
 
@@ -51,13 +48,8 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}
 		catch(Exception e) {}
 	}
-	
-
-	
-	
-	
-	public void paint(Graphics g){
 		
+	public void paint(Graphics g) {	
 		Graphics2D twoDgraph = (Graphics2D) g; 
 		if( back == null)
 			back=(BufferedImage)( (createImage(getWidth(), getHeight()))); 
@@ -68,13 +60,22 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		
 		g2d.setFont( new Font("Broadway", Font.BOLD, 50));
 		
-		//g2d.drawString("key " + key, 340, 100);
-		//g2d.drawImage(stick.getStickImg().getImage(), stick.getX(), stick.getY(), stick.getW(), stick.getH(), this);
 		g2d.drawImage(cueBall.getBallImg().getImage(), cueBall.getX(), cueBall.getY(), cueBall.getW(), cueBall.getH(), this);
+
+		if (stick.firstPtSet) {
+			g2d.drawString("first point set", 50, 50);
+			if (stick.secondPtSet) g2d.drawString("second point set", 500, 50);
+		}
 		
-		if (stick.setFirst && stick.setSecond) {
-			//g2d.drawLine(stick.x1, stick.y1, stick.x2, stick.y2);
-			drawThickLine(g2d, stick.x1, stick.y1, stick.x2, stick.y2);
+		//g2d.drawLine(100, 130, 1260, 130);
+		//g2d.drawLine(1260, 130, 1260, 530);
+		//g2d.drawLine(100, 530, 1260, 530);
+		//g2d.drawLine(100, 130, 100, 530);
+
+		drawThickLine(g2d, stick, cueBall);
+		
+		if (stick.ballCollision(cueBall) || cueBall.isMoving()) {
+			cueBall.moveXY(10, 10);			
 		}
 		
 		for (Ball b : gameBalls) {
@@ -82,26 +83,45 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}		
 		
 		twoDgraph.drawImage(back, null, 0, 0);
-		//double angle = Math.atan2((cueBall.getY()+cueBall.getH()/2)-(stick.getY()+stick.getH()/2), cueBall.getX()-stick.getX());
-		//if (stick.setFirst && stick.setSecond) twoDgraph.rotate(stick.angle());
-		//twoDgraph.rotate(angle);
-		//twoDgraph.drawImage(stick.getStickImg().getImage(), stick.getX(), stick.getY(), stick.getW(), stick.getH(), this);
 	}
 
+	public static int gcd(int a, int b) //from stackoverflow.com
+	{
+		return b == 0 ? a : gcd(b, a % b);
+	}
 	
-	public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2) {
-        float length = (float) Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-        float dx = (x2-x1)/length;
-        float dy = (y2-y1)/length;
-        float xpos = x1;
-        float ypos = y1;
+	public static void drawThickLine(Graphics g, Stick stick, Ball cue) {
+		if (!stick.firstPtSet || !stick.secondPtSet) return;
+		
+		if (stick.IsMoving()) {
+			int dx = 0, dy = 0;
+			
+			if (!stick.ballCollision(cue)) {
+				int a = gcd(10, (int)(10*Math.abs(stick.slope())+0.5));
+				dx = 10/a;
+				dy = (int)(10*Math.abs(stick.slope()))/a;
+				
+				if (stick.x2 < stick.x1) dx = -dx;
+				if (stick.y2 < stick.y1) dy = -dy;
+			}
+			stick.x1 += dx;
+			stick.x2 += dx;
+			stick.y1 += dy;
+			stick.y2 += dy;
+		}
+
+		float length = (float) Math.sqrt((stick.x2-stick.x1)*(stick.x2-stick.x1)+(stick.y2-stick.y1)*(stick.y2-stick.y1));
+        float dx = (stick.x2-stick.x1)/length;
+        float dy = (stick.y2-stick.y1)/length;
+        float xpos = stick.x1;
+        float ypos = stick.y1;
         
         for (int i = 0; i < length; i++) {
             drawDot(g, (int) xpos, (int) ypos);
             xpos += dx;
             ypos += dy;
         }
-        drawDot(g, x2, y2);
+        drawDot(g, stick.x2, stick.y2);
     }
 
     public static void drawDot(Graphics g, int x, int y) {
@@ -109,16 +129,12 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
         g.drawLine(x-2, y, x, y);
     }
 
-
 	//DO NOT DELETE
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
-
 
 //DO NOT DELETE
 	@Override
@@ -128,6 +144,17 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		key= e.getKeyCode();
 		System.out.println(key);
 		
+		if (key == 83) { //s = shoot 
+			if (stick.firstPtSet && stick.secondPtSet) {
+				stick.MakeMove(true);
+			}
+		}
+		if (key == 88) { //x = reset
+			stick.firstPtSet = false;
+			stick.secondPtSet = false;			
+			stick.MakeMove(false);
+			cueBall.setMove(false);
+		}
 		if(key == 37) {
 			stick.setX(-25);
 		}
@@ -141,68 +168,40 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		if(key==38) {
 			stick.setY(-25);
 		}
-		
-		
-		
-	
 	}
 
 
 	//DO NOT DELETE
 	@Override
 	public void keyReleased(KeyEvent e) {
-		
-		
-		
-		
 	}
-	
-	
+		
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		// TODO Auto-generated method stub
 		int y = e.getY();
 		int x = e.getX();
-		
-		//stick.setYdos(y-stick.getH()/2);
-		//stick.setXdos(x);
 	}
-
-
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		// TODO Auto-generated method stub
 		int y = e.getY();
 		int x = e.getX();
-		
-		//stick.setYdos(y);
-		//stick.setXdos(x);
 	}
-
-
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
-		if (!stick.setFirst) { 
+		if (!stick.firstPtSet) { 
 			stick.SetFirst(e.getX(), e.getY());
-			stick.setFirst = true;
-			return;
 		}
-		if (!stick.setSecond) { 
-			stick.SetSecond(e.getX(), e.getY());
-			stick.setSecond = true;
-			return;
-		}
-		
-		if (stick.setFirst && stick.setSecond) {
-			stick.setFirst = false;
-			stick.setSecond = false;
+		else {
+			if (!stick.secondPtSet) { 
+				stick.SetSecond(e.getX(), e.getY());
+			}					
 		}
 	}
-
-
 
 	@Override
 	public void mousePressed(MouseEvent e) {
@@ -210,15 +209,11 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		
 	}
 
-
-
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
@@ -226,16 +221,9 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		
 	}
 
-
-
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
-	}
-	
-	
-	
-
-	
+	}	
 }
