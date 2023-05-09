@@ -21,7 +21,7 @@ public class Stick {
 		y = 250;
 		w = 1;
 		h = 1;
-		stickImg = new ImageIcon("C:\\Users\\S1757642\\pool stick.png");
+		stickImg = new ImageIcon("img\\pool stick.png");
 		firstPtSet = false;
 		secondPtSet = false;
 		move = false;
@@ -102,9 +102,12 @@ public class Stick {
 		
 		if (bb.intersects(stk)) {
 			b.setMove(true);
+			b.SetMoveTime();
 			b.SetDirX(x2 > x1 ? 1 : -1);
 			b.SetDirY(y2 > y1 ? 1 : -1);
 			move = false;
+			firstPtSet = false;
+			secondPtSet = false;
 			return true;
 		}
 		return false;

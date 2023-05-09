@@ -13,27 +13,31 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 	private Stick stick;
 	private Ball cueBall;
 	private ArrayList<Ball> gameBalls;	
+	private Table table;
 	
 	public Game() {
 		new Thread(this).start();	
 		this.addKeyListener(this);
-		key =-1; 
+		key = -1; 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		
-		background = new ImageIcon("C:\\Users\\S1757642\\pool table.jpg");		
-		stick = new Stick();;
-		cueBall = new Ball();
+		background = new ImageIcon("img\\pool table 2.jpg");		
+		table = new Table(110, 1550, 130, 950);
+		stick = new Stick();
+		cueBall = new Ball(table);
 		gameBalls = setGameBalls();
 	}
 
 	private ArrayList<Ball> setGameBalls() {
 		ArrayList <Ball> temp = new ArrayList();
 		int size = 40, cols = 5, k = 0;
+		int x0 = table.getXL()+2*(table.getXU()-table.getXL())/3;
+		int y0 = (table.getYL()+table.getYU())/2;
 
 		for (int j = 0; j < cols; j++) {
 			for (int i = 0; i <= j; i++) {
-				temp.add(new Ball(900+j*size, 325+i*size-j*size/2, k++));
+				temp.add(new Ball(x0+j*size, y0+i*size-j*size/2, k++, table));
 			}
 		}
 		return temp;		
@@ -63,14 +67,14 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		g2d.drawImage(cueBall.getBallImg().getImage(), cueBall.getX(), cueBall.getY(), cueBall.getW(), cueBall.getH(), this);
 
 		if (stick.firstPtSet) {
-			g2d.drawString("first point set", 50, 50);
-			if (stick.secondPtSet) g2d.drawString("second point set", 500, 50);
+			g2d.drawString("first point set", 100, 50);
+			if (stick.secondPtSet) g2d.drawString("second point set", 1100, 50);
 		}
 		
-		//g2d.drawLine(100, 130, 1260, 130);
-		//g2d.drawLine(1260, 130, 1260, 530);
-		//g2d.drawLine(100, 530, 1260, 530);
-		//g2d.drawLine(100, 130, 100, 530);
+		//g2d.drawLine(table.getXL(), table.getYL(), table.getXU(), table.getYL());
+		//g2d.drawLine(table.getXU(), table.getYL(), table.getXU(), table.getYU());
+		//g2d.drawLine(table.getXU(), table.getYU(), table.getXL(), table.getYU());
+		//g2d.drawLine(table.getXL(), table.getYU(), table.getXL(), table.getYL());
 
 		drawThickLine(g2d, stick, cueBall);
 		
@@ -79,6 +83,9 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}
 		
 		for (Ball b : gameBalls) {
+			if (b.ballCollision(cueBall)) {
+				b.moveXY(10, 10);
+			}
 			g2d.drawImage(b.getBallImg().getImage(), b.getX(), b.getY(), b.getW(), b.getH(), this);
 		}		
 		
