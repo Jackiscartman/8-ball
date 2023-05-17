@@ -8,7 +8,7 @@ import java.io.*;
 
 public class Game  extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 	private BufferedImage back; 
-	private int key, score1, score2, winning;  
+	private int key, score1, score2, winning, playerTurn;  
 	private ImageIcon background;	
 	private Stick stick;
 	private Ball cueBall;
@@ -22,12 +22,13 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		key = -1; 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
+		playerTurn = 1;
 		winning = 7;
 		score1 = 0;
 		score2 = 0;
 		background = new ImageIcon("img\\pool table 2.jpg");	
-		//table = new Table(new Point(110, 120), new Point(1550, 900));
-		table = new Table(new Point(100, 100), new Point(1440, 730));
+		table = new Table(new Point(110, 120), new Point(1550, 900));
+		//table = new Table(new Point(100, 100), new Point(1440, 730));
 		stick = new Stick();
 		cueBall = new Ball(table);
 		gameBalls = setGameBalls();
@@ -79,12 +80,13 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		g2d.clearRect(0,0,getSize().width, getSize().height);
 		g2d.drawImage(background.getImage(), 0, 0, getWidth(), getHeight(), this);
 		
-		g2d.setFont( new Font("Broadway", Font.BOLD, 50));
+		g2d.setFont( new Font("Broadway", Font.BOLD, 25));
 		
 		g2d.drawImage(cueBall.getBallImg().getImage(), cueBall.getX(), cueBall.getY(), cueBall.getW(), cueBall.getH(), this);
 
-		g2d.drawString("player 1: "+Integer.toString(score1), 200, 50);
-		g2d.drawString("player 2: "+Integer.toString(score2), 1000, 50);
+		g2d.drawString("player "+Integer.toString(playerTurn)+"'s turn", 600, 50);
+		g2d.drawString("player 1 (solid): "+Integer.toString(score1), 200, 50);
+		g2d.drawString("player 2 (stripes): "+Integer.toString(score2), 1000, 50);
 
 		g2d.drawLine(table.getXL(), table.getYL(), table.getXU(), table.getYL());
 		g2d.drawLine(table.getXU(), table.getYL(), table.getXU(), table.getYU());
@@ -132,7 +134,8 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 			}
 		}
 		else {
-			g2d.drawString("eight ball sunk, game over", 400, 500);
+			SwitchPlayer();
+			g2d.drawString("eight ball sunk, game over, player "+Integer.toString(playerTurn)+" loses", 400, 500);
 			gameOver = true;
 		}
 		
@@ -153,9 +156,7 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 			if (!stick.ballCollision(cue)) {
 				int a = gcd(10, (int)(10*Math.abs(stick.slope())+0.5));
 				dx = 10/a;
-				if (dx == 0) dx = 1;
 				dy = (int)(10*Math.abs(stick.slope()))/a;
-				if (dy == 0) dy = 1;
 				
 				if (stick.x2 < stick.x1) dx = -dx;
 				if (stick.y2 < stick.y1) dy = -dy;
@@ -193,6 +194,12 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		cueBall.setMove(false);    	
     }
     
+    public void SwitchPlayer()
+    {
+    	if (playerTurn == 1) playerTurn = 2;
+    	else playerTurn = 1;
+    }
+    
 	//DO NOT DELETE
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -212,6 +219,7 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 			if (stick.firstPtSet && stick.secondPtSet) {
 				stick.MakeMove(true);
 				playmusic("img\\poolballhit.wav");
+				SwitchPlayer();
 			}
 		}
 		if (key == 88) { //x = reset

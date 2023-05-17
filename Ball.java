@@ -38,7 +38,7 @@ public class Ball {
 		isSunk = false;
 		table = tab;
 		moveTime = 0;
-		maxTime = 2000;
+		maxTime = 1000;
 	}
 
 	public int getIndex() { return index; }
@@ -82,10 +82,10 @@ public class Ball {
 	}
 	
 	public void moveXY(int xx, int yy) {
-		if (x+xx < table.getXL() || x+xx+w > table.getXU()) {
+		if (x+dirX*xx < table.getXL() || x+dirX*xx+w > table.getXU()) {
 			dirX = -dirX;
 		}
-		if (y+yy < table.getYL() || y+yy+h > table.getYU()) {
+		if (y+dirY*yy < table.getYL() || y+dirY*yy+h > table.getYU()) {
 			if (CheckSunk(x+xx, y+yy) || CheckSunk(x+xx+w, y+yy) || CheckSunk(x+xx, y+yy+h) || CheckSunk(x+xx+w, y+yy+h)) {
 				move = false;
 				isSunk = true;
@@ -108,9 +108,9 @@ public class Ball {
 	
 	private int randomDir(double ran)
 	{
-		if (ran < 0.3333) { return -1; }
-		else if (ran < 0.6666) { return 0; }
-		else { return 0; }
+		if (ran < 0.25) { return -1; }
+		else if (ran < 0.75) { return 0; }
+		else { return 1; }
 	}
 	
 	public boolean ballCollision(Ball b) {
