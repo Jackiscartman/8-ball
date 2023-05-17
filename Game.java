@@ -8,25 +8,30 @@ import java.io.*;
 
 public class Game  extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 	private BufferedImage back; 
-	private int key; 
+	private int key, score1, score2, winning;  
 	private ImageIcon background;	
 	private Stick stick;
 	private Ball cueBall;
 	private ArrayList<Ball> gameBalls;	
 	private Table table;
-	
+	private boolean gameOver;
+
 	public Game() {
 		new Thread(this).start();	
 		this.addKeyListener(this);
 		key = -1; 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
-		
-		background = new ImageIcon("img\\pool table 2.jpg");		
-		table = new Table(110, 1550, 130, 950);
+		winning = 7;
+		score1 = 0;
+		score2 = 0;
+		background = new ImageIcon("img\\pool table 2.jpg");	
+		//table = new Table(new Point(110, 120), new Point(1550, 900));
+		table = new Table(new Point(100, 100), new Point(1440, 730));
 		stick = new Stick();
 		cueBall = new Ball(table);
 		gameBalls = setGameBalls();
+		gameOver = false;
 	}
 
 	private ArrayList<Ball> setGameBalls() {
@@ -52,11 +57,23 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}
 		catch(Exception e) {}
 	}
-		
+
+	public void playmusic(String musicfile) {
+		File soundFile = new File(musicfile);
+		try {
+			Clip clip = AudioSystem.getClip();
+			AudioInputStream inputStream= AudioSystem.getAudioInputStream(soundFile);
+			clip.open(inputStream);
+			//clip.loop(clip.LOOP_CONTINUOUSLY);
+			clip.start();
+		}
+		catch(Exception e) { System.out.println(e); }
+	}
+
 	public void paint(Graphics g) {	
 		Graphics2D twoDgraph = (Graphics2D) g; 
 		if( back == null)
-			back=(BufferedImage)( (createImage(getWidth(), getHeight()))); 
+			back =(BufferedImage)( (createImage(getWidth(), getHeight()))); 
 		
 		Graphics g2d = back.createGraphics();
 		g2d.clearRect(0,0,getSize().width, getSize().height);
@@ -66,28 +83,58 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		
 		g2d.drawImage(cueBall.getBallImg().getImage(), cueBall.getX(), cueBall.getY(), cueBall.getW(), cueBall.getH(), this);
 
-		if (stick.firstPtSet) {
-			g2d.drawString("first point set", 100, 50);
-			if (stick.secondPtSet) g2d.drawString("second point set", 1100, 50);
-		}
-		
-		//g2d.drawLine(table.getXL(), table.getYL(), table.getXU(), table.getYL());
-		//g2d.drawLine(table.getXU(), table.getYL(), table.getXU(), table.getYU());
-		//g2d.drawLine(table.getXU(), table.getYU(), table.getXL(), table.getYU());
-		//g2d.drawLine(table.getXL(), table.getYU(), table.getXL(), table.getYL());
+		g2d.drawString("player 1: "+Integer.toString(score1), 200, 50);
+		g2d.drawString("player 2: "+Integer.toString(score2), 1000, 50);
 
-		drawThickLine(g2d, stick, cueBall);
-		
-		if (stick.ballCollision(cueBall) || cueBall.isMoving()) {
-			cueBall.moveXY(10, 10);			
-		}
-		
-		for (Ball b : gameBalls) {
-			if (b.ballCollision(cueBall)) {
-				b.moveXY(10, 10);
+		g2d.drawLine(table.getXL(), table.getYL(), table.getXU(), table.getYL());
+		g2d.drawLine(table.getXU(), table.getYL(), table.getXU(), table.getYU());
+		g2d.drawLine(table.getXU(), table.getYU(), table.getXL(), table.getYU());
+		g2d.drawLine(table.getXL(), table.getYU(), table.getXL(), table.getYL());
+
+		if (!gameOver) {
+			if (stick.firstPtSet) {
+				g2d.drawString("first point set", 300, 100);
+				if (stick.secondPtSet) g2d.drawString("second point set", 900, 100);
 			}
-			g2d.drawImage(b.getBallImg().getImage(), b.getX(), b.getY(), b.getW(), b.getH(), this);
-		}		
+			drawThickLine(g2d, stick, cueBall);
+			
+			if (stick.ballCollision(cueBall) || cueBall.isMoving()) {
+				cueBall.moveXY(5, 5);		
+			}
+			if (cueBall.IsSunk()) {
+				g2d.drawString("cue ball sunk", 500, 50);
+				ResetGame();
+				cueBall.PutInCenter();
+			}
+			
+			for (Ball b : gameBalls) {
+				if (b.ballCollision(cueBall, gameBalls) || b.isMoving()) {
+					b.moveXY(5, 5);
+					
+					if (b.IsSunk()) {
+						b.Erase();
+						if (b.getIndex() == 8) gameOver = true;
+						else if (b.getIndex() <= 7) score1++;
+						else score2++;
+					}
+				}
+				g2d.drawImage(b.getBallImg().getImage(), b.getX(), b.getY(), b.getW(), b.getH(), this);
+			}		
+
+			if (score1 >= winning || score2 >= winning) {
+				if (score1 >= winning) {
+					g2d.drawString("Player 1 Wins, Player 2 Loses!", 400, 500);						
+				}
+				else {
+					g2d.drawString("Player 2 Wins, Player 1 Loses!", 400, 500);						
+				}
+				ResetGame();
+			}
+		}
+		else {
+			g2d.drawString("eight ball sunk, game over", 400, 500);
+			gameOver = true;
+		}
 		
 		twoDgraph.drawImage(back, null, 0, 0);
 	}
@@ -106,11 +153,14 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 			if (!stick.ballCollision(cue)) {
 				int a = gcd(10, (int)(10*Math.abs(stick.slope())+0.5));
 				dx = 10/a;
+				if (dx == 0) dx = 1;
 				dy = (int)(10*Math.abs(stick.slope()))/a;
+				if (dy == 0) dy = 1;
 				
 				if (stick.x2 < stick.x1) dx = -dx;
 				if (stick.y2 < stick.y1) dy = -dy;
 			}
+			stick.setDir(dx, dy);
 			stick.x1 += dx;
 			stick.x2 += dx;
 			stick.y1 += dy;
@@ -136,6 +186,13 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
         g.drawLine(x-2, y, x, y);
     }
 
+    public void ResetGame() {
+		stick.firstPtSet = false;
+		stick.secondPtSet = false;			
+		stick.MakeMove(false);
+		cueBall.setMove(false);    	
+    }
+    
 	//DO NOT DELETE
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -154,26 +211,11 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		if (key == 83) { //s = shoot 
 			if (stick.firstPtSet && stick.secondPtSet) {
 				stick.MakeMove(true);
+				playmusic("img\\poolballhit.wav");
 			}
 		}
 		if (key == 88) { //x = reset
-			stick.firstPtSet = false;
-			stick.secondPtSet = false;			
-			stick.MakeMove(false);
-			cueBall.setMove(false);
-		}
-		if(key == 37) {
-			stick.setX(-25);
-		}
-		
-		if(key == 39) {
-			stick.setX(25);
-		}		
-		if(key==40) {
-			stick.setY(25);
-		}
-		if(key==38) {
-			stick.setY(-25);
+			ResetGame();
 		}
 	}
 

@@ -74,26 +74,24 @@ public class Stick {
 	public double slope() { return (double)(y2-y1)/(double)(x2-x1); }
 	public double angle() { return Math.atan2(y2-y1, x2-x1); }
 	
+	public void setDir(int dxx, int dyy) {
+		dx = dxx;
+		dy = dyy;
+	}
+	
+	public int getDirX() { return dx; }
+	public int getDirY() { return dy; }
 	public void setX(int xV) { x += xV;	}
-	
 	public void setY(int yV) { y += yV;	}
-	
 	public void setW(int wV) { w += wV;	}
-	
 	public void setH(int hV) { h += hV; }
-	
 	public void setXdos(int xV) { x = xV; }
-	
 	public void setYdos(int yV) { y = yV; }
-
 	public int getX() { return x; }
-
 	public int getY() { return y; }	
-
 	public int getH() { return h; }
-	 
 	public int getW() { return w; }	
-	
+
 	public ImageIcon getStickImg() { return stickImg; }
 	
 	public boolean ballCollision(Ball b) {
@@ -103,11 +101,17 @@ public class Stick {
 		if (bb.intersects(stk)) {
 			b.setMove(true);
 			b.SetMoveTime();
-			b.SetDirX(x2 > x1 ? 1 : -1);
-			b.SetDirY(y2 > y1 ? 1 : -1);
+			//b.SetDirX(x2 > x1 ? 1 : -1);
+			//b.SetDirY(y2 > y1 ? 1 : -1);
+			b.SetDirX(dx);
+			b.SetDirY(dy);
 			move = false;
 			firstPtSet = false;
 			secondPtSet = false;
+			x1 = 0;
+			y1 = 0;
+			x2 = 0;
+			y2 = 0;
 			return true;
 		}
 		return false;
