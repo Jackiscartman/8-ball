@@ -24,7 +24,7 @@ public class Ball {
 		ballImg = new ImageIcon("img\\cue ball.png");
 		move = false;
 		moveTime = 0;
-		maxTime = 2000;
+		maxTime = 1000;
 	}
 
 	public Ball(int xx, int yy, int i, Table tab) {
@@ -71,7 +71,7 @@ public class Ball {
 	
 	private boolean CheckSunk(int xx, int yy)
 	{
-		int deadZone = 40;
+		int deadZone = 30;
 
 		for (int i = 0; i < table.numPockets(); i++) {
 			if (table.getPocket(i).x-deadZone < xx && xx < table.getPocket(i).x+deadZone && 
@@ -108,8 +108,8 @@ public class Ball {
 	
 	private int randomDir(double ran)
 	{
-		if (ran < 0.25) { return -1; }
-		else if (ran < 0.75) { return 0; }
+		if (ran < 0.2) { return -1; }
+		else if (ran < 0.8) { return 0; }
 		else { return 1; }
 	}
 	

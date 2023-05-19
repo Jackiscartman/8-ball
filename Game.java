@@ -27,8 +27,8 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		score1 = 0;
 		score2 = 0;
 		background = new ImageIcon("img\\pool table 2.jpg");	
-		table = new Table(new Point(110, 120), new Point(1550, 900));
-		//table = new Table(new Point(100, 100), new Point(1440, 730));
+		//table = new Table(new Point(110, 120), new Point(1550, 900));
+		table = new Table(new Point(100, 100), new Point(1440, 730));
 		stick = new Stick();
 		cueBall = new Ball(table);
 		gameBalls = setGameBalls();
@@ -84,7 +84,7 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		
 		g2d.drawImage(cueBall.getBallImg().getImage(), cueBall.getX(), cueBall.getY(), cueBall.getW(), cueBall.getH(), this);
 
-		g2d.drawString("player "+Integer.toString(playerTurn)+"'s turn", 600, 50);
+		g2d.drawString("player "+Integer.toString(playerTurn)+"'s turn", 500, 50);
 		g2d.drawString("player 1 (solid): "+Integer.toString(score1), 200, 50);
 		g2d.drawString("player 2 (stripes): "+Integer.toString(score2), 1000, 50);
 
@@ -156,7 +156,7 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 			if (!stick.ballCollision(cue)) {
 				int a = gcd(10, (int)(10*Math.abs(stick.slope())+0.5));
 				dx = 10/a;
-				dy = (int)(10*Math.abs(stick.slope()))/a;
+				dy = (int)(10*Math.abs(stick.slope())+0.5)/a;
 				
 				if (stick.x2 < stick.x1) dx = -dx;
 				if (stick.y2 < stick.y1) dy = -dy;
@@ -196,6 +196,8 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
     
     public void SwitchPlayer()
     {
+    	if (gameOver) return;
+    	
     	if (playerTurn == 1) playerTurn = 2;
     	else playerTurn = 1;
     }
@@ -224,6 +226,9 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}
 		if (key == 88) { //x = reset
 			ResetGame();
+		}
+		if (key == 80) { //p = put cue ball back
+			cueBall.PutInCenter();
 		}
 	}
 
