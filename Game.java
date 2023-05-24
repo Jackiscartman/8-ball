@@ -26,9 +26,10 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		winning = 7;
 		score1 = 0;
 		score2 = 0;
-		background = new ImageIcon("img\\pool table 2.jpg");	
-		//table = new Table(new Point(110, 120), new Point(1550, 900));
-		table = new Table(new Point(100, 100), new Point(1440, 730));
+		background = new ImageIcon("img\\pool table 2.jpg");
+		//need to change to fit monitor resolution
+		table = new Table(new Point(110, 120), new Point(1550, 900));
+		//table = new Table(new Point(100, 100), new Point(1440, 730));
 		stick = new Stick();
 		cueBall = new Ball(table);
 		gameBalls = setGameBalls();
@@ -229,6 +230,14 @@ public class Game  extends JPanel implements Runnable, KeyListener, MouseListene
 		}
 		if (key == 80) { //p = put cue ball back
 			cueBall.PutInCenter();
+		}
+		if (key == 65) { //a = play again
+			cueBall.PutInCenter();
+			score1 = 0;
+			score2 = 0;
+			gameOver = false;
+			gameBalls.clear();
+			gameBalls = setGameBalls();
 		}
 	}
 
